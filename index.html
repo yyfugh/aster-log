@@ -144,7 +144,7 @@ dialog{border:0;background:transparent;padding:0;max-width:min(620px,calc(100vw 
       </section>
 
       <section id="viewerNotice" class="viewer-notice hidden">
-        已经连接 Supabase：帖子和评论现在都是真实数据。点赞和 Aster 发帖下一步再接。
+        已经连接 Supabase：帖子、评论和点赞现在都是真实数据。下一步只剩 Aster 发帖与回复。
       </section>
 
       <section id="dbStatus" class="viewer-notice">正在连接 Supabase…</section>
@@ -160,7 +160,7 @@ dialog{border:0;background:transparent;padding:0;max-width:min(620px,calc(100vw 
   </dialog>
 
   <script>
-const KEY="aster_supabase_comments_v1";
+const KEY="aster_supabase_likes_v1";
 const SUPABASE_REST="https://qiimhmvaoqxhpxkswznr.supabase.co/rest/v1";
 const SUPABASE_KEY="sb_publishable_chqfPBZ4BA7UNjgxeNcKPw_Q7B8PkaN";
 
@@ -217,25 +217,39 @@ async function loadRealPosts(){
     }
     const commentRows = await commentResponse.json();
 
-    state.posts = postRows.map(row => ({
-      id: String(row.id),
-      text: row.content || "",
-      createdAt: row.created_at,
-      liked: false,
-      likes: 0,
-      media: null,
-      status: null,
-      comments: commentRows
-        .filter(c => String(c.post_id) === String(row.id))
-        .map(c => ({
-          id: String(c.id),
-          author: c.author || "Icey",
-          text: c.content || "",
-          createdAt: c.created_at,
-          replies: []
-        }))
-    }));
-    state.dbMessage = `✓ 已连接 Supabase · ${postRows.length} 条帖子 · ${commentRows.length} 条评论`;
+    const likeResponse = await fetch(
+      `${SUPABASE_REST}/likes?select=id,post_id,user_name,created_at`,
+      { headers: { apikey: SUPABASE_KEY } }
+    );
+    if(!likeResponse.ok){
+      throw new Error(`likes ${likeResponse.status}: ${await likeResponse.text()}`);
+    }
+    const likeRows = await likeResponse.json();
+
+    state.posts = postRows.map(row => {
+      const postLikes = likeRows.filter(l => String(l.post_id) === String(row.id));
+      const iceyLike = postLikes.find(l => l.user_name === "Icey");
+      return {
+        id: String(row.id),
+        text: row.content || "",
+        createdAt: row.created_at,
+        liked: Boolean(iceyLike),
+        likeId: iceyLike ? String(iceyLike.id) : null,
+        likes: postLikes.length,
+        media: null,
+        status: null,
+        comments: commentRows
+          .filter(c => String(c.post_id) === String(row.id))
+          .map(c => ({
+            id: String(c.id),
+            author: c.author || "Icey",
+            text: c.content || "",
+            createdAt: c.created_at,
+            replies: []
+          }))
+      };
+    });
+    state.dbMessage = `✓ 已连接 Supabase · ${postRows.length} 条帖子 · ${commentRows.length} 条评论 · ${likeRows.length} 个赞`;
   }catch(err){
     state.dbMessage = `连接 Supabase 失败：${err.message}`;
   }
@@ -259,6 +273,38 @@ async function addRealComment(postId, text){
   });
   if(!response.ok){
     throw new Error(`${response.status}: ${await response.text()}`);
+  }
+  await loadRealPosts();
+}
+
+async function toggleRealLike(post){
+  if(post.liked && post.likeId){
+    const response = await fetch(`${SUPABASE_REST}/likes?id=eq.${encodeURIComponent(post.likeId)}`,{
+      method:"DELETE",
+      headers:{
+        apikey:SUPABASE_KEY,
+        "Prefer":"return=minimal"
+      }
+    });
+    if(!response.ok){
+      throw new Error(`${response.status}: ${await response.text()}`);
+    }
+  }else{
+    const response = await fetch(`${SUPABASE_REST}/likes`,{
+      method:"POST",
+      headers:{
+        apikey:SUPABASE_KEY,
+        "Content-Type":"application/json",
+        "Prefer":"return=representation"
+      },
+      body:JSON.stringify({
+        post_id:Number(post.id),
+        user_name:"Icey"
+      })
+    });
+    if(!response.ok){
+      throw new Error(`${response.status}: ${await response.text()}`);
+    }
   }
   await loadRealPosts();
 }
@@ -327,10 +373,15 @@ function renderFeed(){
       ${owner?"":`<div class="comment-box"><input maxlength="200" placeholder="Icey 留一句话……"><button>发送</button></div>`}
     `;
     if(!owner){
-      el.querySelector(".like-btn").onclick=()=>{
-        post.liked=!post.liked;post.likes+=post.liked?1:-1;
-        if(post.liked)state.notifications.unshift({id:"n"+Date.now(),kind:"like",text:`Icey 点赞了你的帖子：“${post.text.slice(0,20)}${post.text.length>20?"…":""}”`,time:"刚刚",read:false});
-        save();renderFeed();renderStats();
+      el.querySelector(".like-btn").onclick=async()=>{
+        const btn=el.querySelector(".like-btn");
+        btn.disabled=true;
+        try{
+          await toggleRealLike(post);
+        }catch(err){
+          alert("点赞操作失败："+err.message);
+          btn.disabled=false;
+        }
       };
       const send=async()=>{
         const input=el.querySelector(".comment-box input"),text=input.value.trim();if(!text)return;
