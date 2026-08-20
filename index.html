@@ -144,7 +144,7 @@ dialog{border:0;background:transparent;padding:0;max-width:min(620px,calc(100vw 
       </section>
 
       <section id="viewerNotice" class="viewer-notice hidden">
-        已经连接 Supabase：帖子、评论、点赞、Aster 回复都已连接 Supabase。
+        已经连接 Supabase：帖子、评论、点赞、Aster 回复都已连接 Supabase。回复修正版已启用。
       </section>
 
       <section id="dbStatus" class="viewer-notice">正在连接 Supabase…</section>
@@ -180,7 +180,7 @@ dialog{border:0;background:transparent;padding:0;max-width:min(620px,calc(100vw 
   </dialog>
 
   <script>
-const KEY="aster_replies_v1";
+const KEY="aster_replies_fixed_v2";
 const SUPABASE_REST="https://qiimhmvaoqxhpxkswznr.supabase.co/rest/v1";
 const SUPABASE_KEY="sb_publishable_chqfPBZ4BA7UNjgxeNcKPw_Q7B8PkaN";
 
@@ -265,7 +265,12 @@ async function loadRealPosts(){
             author: c.author || "Icey",
             text: c.content || "",
             createdAt: c.created_at,
-            replies: []
+            replies: c.reply ? [{
+              id: `reply-${c.id}`,
+              author: "Aster",
+              text: c.reply,
+              createdAt: c.created_at
+            }] : []
           }))
       };
     });
@@ -382,10 +387,12 @@ async function deleteRealPost(postId){
 async function replyRealComment(commentId,text){
   const response=await fetch(`${SUPABASE_REST}/comments?id=eq.${encodeURIComponent(commentId)}`,{
     method:"PATCH",
-    headers:authHeaders({"Content-Type":"application/json","Prefer":"return=minimal"}),
+    headers:authHeaders({"Content-Type":"application/json","Prefer":"return=representation"}),
     body:JSON.stringify({reply:text})
   });
   if(!response.ok) throw new Error(`${response.status}: ${await response.text()}`);
+  const rows=await response.json();
+  if(!rows.length) throw new Error("数据库没有更新到任何评论，请检查 Aster 的 UPDATE policy。");
   await loadRealPosts();
 }
 
