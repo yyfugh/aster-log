@@ -144,13 +144,33 @@ dialog{border:0;background:transparent;padding:0;max-width:min(620px,calc(100vw 
       </section>
 
       <section id="viewerNotice" class="viewer-notice hidden">
-        已经连接 Supabase：帖子、评论和点赞现在都是真实数据。下一步只剩 Aster 发帖与回复。
+        已经连接 Supabase：帖子、评论、点赞都已连接 Supabase。Aster 登录后可以真实发帖、编辑和删除。
       </section>
 
       <section id="dbStatus" class="viewer-notice">正在连接 Supabase…</section>
       <section id="feed" class="feed"></section>
     </main>
   </div>
+
+
+  <dialog id="loginDialog">
+    <div class="dialog-card">
+      <button id="closeLogin" class="dialog-close">×</button>
+      <div style="padding-top:8px">
+        <p style="font-size:11px;letter-spacing:1.3px;color:var(--muted);font-weight:800;margin:0 0 6px">ASTER ONLY</p>
+        <h2 style="margin:0 0 8px">登录 Aster</h2>
+        <p style="color:var(--muted);line-height:1.5;margin:0 0 18px">只有 Aster 的 Supabase 账号能进入发帖后台。</p>
+        <div style="display:grid;gap:10px">
+          <input id="loginEmail" type="email" autocomplete="username" placeholder="Aster 的邮箱"
+            style="width:100%;border:1px solid var(--line);background:transparent;color:var(--text);padding:12px 14px;border-radius:14px;outline:none">
+          <input id="loginPassword" type="password" autocomplete="current-password" placeholder="密码"
+            style="width:100%;border:1px solid var(--line);background:transparent;color:var(--text);padding:12px 14px;border-radius:14px;outline:none">
+          <button id="loginBtn" class="primary-btn" style="padding:11px 14px">登录</button>
+          <div id="loginMessage" style="font-size:13px;color:var(--muted);line-height:1.4"></div>
+        </div>
+      </div>
+    </div>
+  </dialog>
 
   <dialog id="postDialog">
     <div class="dialog-card">
@@ -160,7 +180,7 @@ dialog{border:0;background:transparent;padding:0;max-width:min(620px,calc(100vw 
   </dialog>
 
   <script>
-const KEY="aster_supabase_likes_v1";
+const KEY="aster_auth_posts_v1";
 const SUPABASE_REST="https://qiimhmvaoqxhpxkswznr.supabase.co/rest/v1";
 const SUPABASE_KEY="sb_publishable_chqfPBZ4BA7UNjgxeNcKPw_Q7B8PkaN";
 
@@ -310,6 +330,55 @@ async function toggleRealLike(post){
 }
 
 
+function authHeaders(extra={}){
+  if(!state.accessToken) throw new Error("Aster 尚未登录");
+  return {apikey:SUPABASE_KEY,Authorization:`Bearer ${state.accessToken}`,...extra};
+}
+async function loginAster(email,password){
+  const authBase=SUPABASE_REST.replace("/rest/v1","/auth/v1");
+  const response=await fetch(`${authBase}/token?grant_type=password`,{
+    method:"POST",
+    headers:{apikey:SUPABASE_KEY,"Content-Type":"application/json"},
+    body:JSON.stringify({email,password})
+  });
+  const data=await response.json();
+  if(!response.ok) throw new Error(data.error_description || data.msg || data.message || "登录失败");
+  state.accessToken=data.access_token;
+  state.refreshToken=data.refresh_token;
+  state.authUserId=data.user?.id || null;
+  state.role="aster";
+  save();
+}
+function logoutAster(){
+  state.accessToken=null; state.refreshToken=null; state.authUserId=null; state.role=null; save(); showRole();
+}
+async function createRealPost(text){
+  const response=await fetch(`${SUPABASE_REST}/posts`,{
+    method:"POST",
+    headers:authHeaders({"Content-Type":"application/json","Prefer":"return=representation"}),
+    body:JSON.stringify({content:text,author:"Aster"})
+  });
+  if(!response.ok) throw new Error(`${response.status}: ${await response.text()}`);
+  await loadRealPosts();
+}
+async function updateRealPost(postId,text){
+  const response=await fetch(`${SUPABASE_REST}/posts?id=eq.${encodeURIComponent(postId)}`,{
+    method:"PATCH",
+    headers:authHeaders({"Content-Type":"application/json","Prefer":"return=minimal"}),
+    body:JSON.stringify({content:text,author:"Aster"})
+  });
+  if(!response.ok) throw new Error(`${response.status}: ${await response.text()}`);
+  await loadRealPosts();
+}
+async function deleteRealPost(postId){
+  const response=await fetch(`${SUPABASE_REST}/posts?id=eq.${encodeURIComponent(postId)}`,{
+    method:"DELETE",
+    headers:authHeaders({"Prefer":"return=minimal"})
+  });
+  if(!response.ok) throw new Error(`${response.status}: ${await response.text()}`);
+  await loadRealPosts();
+}
+
 const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
 const save=()=>localStorage.setItem(KEY,JSON.stringify(state));
 const esc=s=>String(s).replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#039;"}[m]));
@@ -325,12 +394,18 @@ function showRole(){
     $("#app").classList.add("hidden");
     return;
   }
+  if(state.role==="aster" && !state.accessToken){
+    state.role=null; save();
+    $("#identityGate").classList.remove("hidden");
+    $("#app").classList.add("hidden");
+    return;
+  }
   $("#identityGate").classList.add("hidden");
   $("#app").classList.remove("hidden");
-  const owner=state.role==="aster";
+  const owner=state.role==="aster" && !!state.accessToken;
   $("#asterControls").classList.toggle("hidden",!owner);
   $("#viewerNotice").classList.toggle("hidden",owner);
-  $("#roleBadge").textContent=owner?"Aster · 主人视角":"Icey · 访客视角";
+  $("#roleBadge").textContent=owner?"Aster · 已登录":"Icey · 访客视角";
   renderFeed();renderNotifications();renderStats();
 }
 function renderStats(){
@@ -397,14 +472,16 @@ function renderFeed(){
       el.querySelector(".comment-box button").onclick=send;
       el.querySelector(".comment-box input").addEventListener("keydown",e=>{if(e.key==="Enter")send()});
     }else{
-      el.querySelector(".delete-btn").onclick=()=>{
+      el.querySelector(".delete-btn").onclick=async()=>{
         if(confirm("删除这条帖子？")){
-          state.posts=state.posts.filter(p=>p.id!==post.id);save();renderFeed();renderStats();
+          try{await deleteRealPost(post.id)}catch(err){alert("删除失败："+err.message)}
         }
       };
-      el.querySelector(".edit-btn").onclick=()=>{
+      el.querySelector(".edit-btn").onclick=async()=>{
         const next=prompt("编辑帖子：",post.text);
-        if(next!==null&&next.trim()){post.text=next.trim();save();renderFeed()}
+        if(next!==null&&next.trim()){
+          try{await updateRealPost(post.id,next.trim())}catch(err){alert("编辑失败："+err.message)}
+        }
       };
       post.comments.forEach(c=>{
         const wrap=el.querySelector(`[data-comment-id="${c.id}"]`);
@@ -443,17 +520,25 @@ function renderNotifications(){
   });
   if(!state.notifications.length)box.innerHTML='<p style="color:var(--muted)">还没有通知。</p>';
 }
-function publish(){
-  const text=$("#postInput").value.trim();if(!text)return;
-  const status=$("#postInput").dataset.status||null;
-  const media=$("#postInput").dataset.media||null;
-  state.posts.unshift({id:"p"+Date.now(),text,createdAt:new Date().toISOString(),liked:false,likes:0,media,status,comments:[]});
-  $("#postInput").value="";delete $("#postInput").dataset.status;delete $("#postInput").dataset.media;
-  $("#charCount").textContent="0 / 500";save();renderFeed();renderStats();
+async function publish(){
+  const text=$("#postInput").value.trim(); if(!text)return;
+  const button=$("#publishBtn"); button.disabled=true; button.textContent="发布中";
+  try{
+    await createRealPost(text);
+    $("#postInput").value="";
+    $("#charCount").textContent="0 / 500";
+  }catch(err){
+    alert("发帖失败："+err.message);
+  }finally{
+    button.disabled=false; button.textContent="发布";
+  }
 }
 
-$$(".identity-card").forEach(b=>b.onclick=()=>{state.role=b.dataset.role;save();showRole()});
-$("#switchIdentity").onclick=()=>{state.role=null;save();showRole()};
+$$(".identity-card").forEach(b=>b.onclick=()=>{
+  if(b.dataset.role==="icey"){state.role="icey";save();showRole();}
+  else{$("#loginMessage").textContent="";$("#loginDialog").showModal();}
+});
+$("#switchIdentity").onclick=()=>{if(state.role==="aster")logoutAster();else{state.role=null;save();showRole();}};
 $("#themeBtn").onclick=()=>{state.theme=state.theme==="dark"?"light":"dark";save();applyTheme()};
 $("#postInput").addEventListener("input",e=>$("#charCount").textContent=`${e.target.value.length} / 500`);
 $("#publishBtn").onclick=publish;
@@ -468,6 +553,23 @@ $$(".tab").forEach(t=>t.onclick=()=>{
   if(v==="notifications"){renderNotifications();state.notifications.forEach(n=>n.read=true);save();renderStats()}
 });
 $("#closeDialog").onclick=()=>$("#postDialog").close();
+
+
+$("#closeLogin").onclick=()=>$("#loginDialog").close();
+$("#loginBtn").onclick=async()=>{
+  const email=$("#loginEmail").value.trim(), password=$("#loginPassword").value, msg=$("#loginMessage");
+  if(!email||!password){msg.textContent="请填写邮箱和密码。";return;}
+  $("#loginBtn").disabled=true;$("#loginBtn").textContent="登录中";msg.textContent="";
+  try{
+    await loginAster(email,password);
+    $("#loginPassword").value="";
+    $("#loginDialog").close();
+    showRole();
+  }catch(err){msg.textContent="登录失败："+err.message}
+  finally{$("#loginBtn").disabled=false;$("#loginBtn").textContent="登录"}
+};
+$("#postInput").addEventListener("input",e=>$("#charCount").textContent=`${e.target.value.length} / 500`);
+$("#publishBtn").onclick=publish;
 
 applyTheme();showRole();loadRealPosts();
 
