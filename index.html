@@ -144,9 +144,10 @@ dialog{border:0;background:transparent;padding:0;max-width:min(620px,calc(100vw 
       </section>
 
       <section id="viewerNotice" class="viewer-notice hidden">
-        这里是 Aster 的主页。你可以点赞和评论，但只有 Aster 能发帖。
+        数据库读取测试版：主页帖子已改为从 Supabase 读取。点赞、评论、发帖目前仍是本地试玩，下一步再接数据库。
       </section>
 
+      <section id="dbStatus" class="viewer-notice">正在连接 Supabase…</section>
       <section id="feed" class="feed"></section>
     </main>
   </div>
@@ -159,7 +160,9 @@ dialog{border:0;background:transparent;padding:0;max-width:min(620px,calc(100vw 
   </dialog>
 
   <script>
-const KEY="aster_dual_identity_v1";
+const KEY="aster_supabase_test_v1";
+const SUPABASE_REST="https://qiimhmvaoqxhpxkswznr.supabase.co/rest/v1";
+const SUPABASE_KEY="sb_publishable_chqfPBZ4BA7UNjgxeNcKPw_Q7B8PkaN";
 
 const seedPosts=[
   {
@@ -193,6 +196,35 @@ if(!state){
   };
 }
 
+
+async function loadRealPosts(){
+  try{
+    const response = await fetch(
+      `${SUPABASE_REST}/posts?select=id,created_at,content,author&order=created_at.desc`,
+      { headers: { apikey: SUPABASE_KEY } }
+    );
+    if(!response.ok){
+      throw new Error(`${response.status}: ${await response.text()}`);
+    }
+    const rows = await response.json();
+    state.posts = rows.map(row => ({
+      id: String(row.id),
+      text: row.content || "",
+      createdAt: row.created_at,
+      liked: false,
+      likes: 0,
+      media: null,
+      status: null,
+      comments: []
+    }));
+    state.dbMessage = `✓ 已连接 Supabase · ${rows.length} 条真实帖子`;
+  }catch(err){
+    state.dbMessage = `连接 Supabase 失败：${err.message}`;
+  }
+  save();
+  showRole();
+}
+
 const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
 const save=()=>localStorage.setItem(KEY,JSON.stringify(state));
 const esc=s=>String(s).replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#039;"}[m]));
@@ -220,6 +252,7 @@ function renderStats(){
   $("#postCount").textContent=state.posts.length;
   $("#likeCount").textContent=state.posts.reduce((n,p)=>n+p.likes,0);
   $("#notifDot").classList.toggle("hidden",!state.notifications.some(n=>!n.read));
+  if($("#dbStatus")) $("#dbStatus").textContent=state.dbMessage || "正在连接 Supabase…";
 }
 
 function commentHtml(c,owner){
@@ -341,7 +374,7 @@ $$(".tab").forEach(t=>t.onclick=()=>{
 });
 $("#closeDialog").onclick=()=>$("#postDialog").close();
 
-applyTheme();showRole();
+applyTheme();showRole();loadRealPosts();
 
 </script>
 </body>
