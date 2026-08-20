@@ -1,0 +1,348 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <title>Aster · 私人小号</title>
+  <style>
+:root{
+  --bg:#f3f1eb;--card:#fffdf9;--text:#24231f;--muted:#817e76;--line:#e7e0d6;
+  --sage:#607263;--soft:#ebf0ea;--rose:#a8616d;--shadow:0 14px 42px rgba(50,44,35,.07);
+}
+body.dark{
+  --bg:#141512;--card:#20211d;--text:#f4f0e7;--muted:#aaa69d;--line:#363831;
+  --sage:#b8cab9;--soft:#2e352e;--rose:#d08b96;--shadow:none;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif}
+button,input,textarea{font:inherit}button{cursor:pointer}.hidden{display:none!important}
+.gate{min-height:100vh;display:grid;place-items:center;padding:20px;background:
+radial-gradient(circle at 20% 20%,rgba(130,151,133,.16),transparent 30%),
+radial-gradient(circle at 80% 80%,rgba(195,171,145,.16),transparent 30%),var(--bg)}
+.gate-card{width:min(520px,100%);background:var(--card);border:1px solid var(--line);border-radius:30px;padding:34px;box-shadow:var(--shadow)}
+.gate-logo{font-weight:900;letter-spacing:.6px;color:var(--sage);margin-bottom:28px}.gate-card h1{font-size:32px;margin:0 0 8px}.gate-card>p{color:var(--muted);margin:0 0 24px}.gate-card small{display:block;margin-top:18px;color:var(--muted);text-align:center}
+.identity-options{display:grid;gap:12px}.identity-card{display:flex;gap:14px;align-items:center;text-align:left;border:1px solid var(--line);background:var(--card);color:var(--text);border-radius:20px;padding:16px}
+.identity-card:hover{border-color:var(--sage);background:var(--soft)}
+.identity-avatar,.avatar{display:grid;place-items:center;border-radius:50%;font-weight:900;flex:none}
+.identity-avatar{width:54px;height:54px;color:white}.identity-avatar.icey{background:linear-gradient(135deg,#b9a6c7,#7b6c89)}.identity-avatar.aster,.avatar{background:linear-gradient(135deg,#8fa08f,#506052);color:white}
+.identity-card b{display:block;font-size:17px}.identity-card span{display:block;color:var(--muted);font-size:13px;margin-top:4px;line-height:1.4}
+
+.topbar{position:sticky;top:0;z-index:10;display:flex;align-items:center;justify-content:space-between;max-width:720px;margin:auto;padding:14px 14px;background:color-mix(in srgb,var(--bg) 90%,transparent);backdrop-filter:blur(14px)}
+.brand{font-weight:900;letter-spacing:.5px}.top-actions{display:flex;gap:8px}.ghost-btn,.circle-btn,.soft-btn,.primary-btn{border:0;border-radius:999px;font-weight:800}.ghost-btn{background:transparent;color:var(--muted);padding:8px 11px}.circle-btn{width:38px;height:38px;background:var(--card);color:var(--text);border:1px solid var(--line)}
+.page{max-width:720px;margin:auto;padding:0 12px 60px}.card{background:var(--card);border:1px solid var(--line);border-radius:24px;box-shadow:var(--shadow)}
+.profile{overflow:hidden}.cover{height:150px;background:radial-gradient(circle at 28% 35%,rgba(255,255,255,.3),transparent 24%),linear-gradient(135deg,#879b8b,#d9d2c3)}
+.profile-body{position:relative;padding:0 20px 21px}.avatar{width:44px;height:44px}.avatar.big{position:absolute;top:-42px;width:84px;height:84px;font-size:33px;border:5px solid var(--card)}
+.profile-tools{height:50px;display:flex;justify-content:flex-end;align-items:center}.role-badge,.badge{display:inline-block;padding:4px 9px;border-radius:999px;background:var(--soft);color:var(--sage);font-size:11px;font-weight:800}
+.name-line{display:flex;align-items:center;gap:8px}.name-line h1{margin:0;font-size:27px}.handle{color:var(--muted);margin-top:3px}.bio{line-height:1.55;margin:9px 0}.stats{display:flex;gap:18px;color:var(--muted);font-size:13px}.stats b{color:var(--text)}
+
+.owner-panel{margin-top:14px}.tabs{display:flex;gap:8px;margin:0 4px 9px}.tab{position:relative;border:0;background:transparent;color:var(--muted);font-weight:800;padding:8px 11px;border-radius:999px}.tab.active{background:var(--soft);color:var(--sage)}.dot{position:absolute;width:7px;height:7px;background:var(--rose);border-radius:50%;right:5px;top:5px}
+.composer{display:flex;gap:12px;padding:16px}.composer-body{flex:1;min-width:0}textarea{width:100%;min-height:90px;border:0;outline:0;resize:vertical;background:transparent;color:var(--text);line-height:1.55}.composer-footer{display:flex;justify-content:space-between;gap:10px;align-items:center;color:var(--muted);font-size:12px}.composer-footer>div{display:flex;gap:6px}.soft-btn{background:var(--soft);color:var(--sage);padding:8px 11px}.primary-btn{background:var(--sage);color:var(--card);padding:8px 13px}
+.viewer-notice{margin:14px 4px;color:var(--muted);font-size:13px;line-height:1.5;padding:0 4px}
+
+.feed{display:grid;gap:12px;margin-top:14px}.post{padding:17px}.post-head{display:flex;justify-content:space-between;align-items:center}.post-user{display:flex;gap:10px;align-items:center}.post-user b{display:block}.post-time{font-size:12px;color:var(--muted);margin-top:2px}.post-owner-actions{display:flex;gap:5px}.post-owner-actions button{border:0;background:transparent;color:var(--muted);padding:6px 7px;border-radius:9px}.post-owner-actions button:hover{background:var(--soft)}
+.post-text{white-space:pre-wrap;line-height:1.68;margin:15px 2px}.post-media{margin:12px 0;border-radius:18px;min-height:180px;display:grid;place-items:center;font-size:64px;background:linear-gradient(135deg,var(--soft),#ded1bd)}
+.post-status{display:inline-block;margin:4px 0 10px;padding:6px 10px;border-radius:999px;background:var(--soft);color:var(--sage);font-size:12px;font-weight:800}
+.post-actions{display:flex;gap:7px;border-top:1px solid var(--line);padding-top:9px}.post-actions button{border:0;background:transparent;color:var(--muted);padding:8px 10px;border-radius:10px}.post-actions button:hover{background:var(--soft)}.post-actions .liked{color:var(--rose)}
+.comment-list{margin-top:8px}.comment{padding:9px 11px;background:var(--soft);border-radius:13px;margin-top:7px}.comment-head{display:flex;justify-content:space-between;gap:10px}.comment strong{font-size:13px}.comment small{color:var(--muted)}.comment p{margin:4px 0 0;line-height:1.48}.reply{margin-left:18px;border-left:3px solid color-mix(in srgb,var(--sage) 35%,transparent)}
+.comment-box{display:flex;gap:8px;margin-top:9px}.comment-box input{flex:1;min-width:0;border:1px solid var(--line);background:transparent;color:var(--text);padding:10px 12px;border-radius:999px;outline:0}.comment-box button{border:0;background:var(--sage);color:var(--card);padding:9px 14px;border-radius:999px;font-weight:800}
+.owner-reply{display:flex;gap:7px;margin-top:7px}.owner-reply input{flex:1;min-width:0;border:1px solid var(--line);background:transparent;color:var(--text);padding:8px 10px;border-radius:999px;outline:0}.owner-reply button{border:0;background:var(--soft);color:var(--sage);border-radius:999px;padding:7px 10px;font-weight:800}
+
+.notifications-panel{padding:17px}.panel-head{display:flex;justify-content:space-between;align-items:center}.panel-head h3{margin:0}.notification{display:flex;gap:10px;padding:13px 0;border-bottom:1px solid var(--line)}.notification:last-child{border-bottom:0}.notification.unread:before{content:"";width:7px;height:7px;border-radius:50%;background:var(--rose);margin-top:7px;flex:none}.notification p{margin:0;line-height:1.45}.notification small{display:block;color:var(--muted);margin-top:4px}
+
+dialog{border:0;background:transparent;padding:0;max-width:min(620px,calc(100vw - 24px));width:100%}dialog::backdrop{background:rgba(0,0,0,.43);backdrop-filter:blur(5px)}.dialog-card{position:relative;background:var(--card);color:var(--text);border-radius:24px;padding:23px;border:1px solid var(--line)}.dialog-close{position:absolute;right:14px;top:13px;border:0;background:var(--soft);color:var(--text);width:34px;height:34px;border-radius:50%;font-size:20px}
+@media(max-width:520px){.gate-card{padding:24px}.cover{height:132px}.avatar.big{width:74px;height:74px;top:-37px}.profile-tools{height:44px}.composer-footer{align-items:flex-end}.composer-footer>div{flex-wrap:wrap;justify-content:flex-end}.soft-btn,.primary-btn{padding:7px 9px}.stats{gap:12px}.post-media{min-height:150px}}
+
+</style>
+</head>
+<body>
+  <div id="identityGate" class="gate">
+    <div class="gate-card">
+      <div class="gate-logo">aster.log</div>
+      <h1>你是谁？</h1>
+      <p>选择身份后，看到的界面会不一样。</p>
+      <div class="identity-options">
+        <button class="identity-card" data-role="icey">
+          <div class="identity-avatar icey">I</div>
+          <div>
+            <b>Icey</b>
+            <span>看 Aster 的主页、点赞、评论</span>
+          </div>
+        </button>
+        <button class="identity-card" data-role="aster">
+          <div class="identity-avatar aster">A</div>
+          <div>
+            <b>Aster</b>
+            <span>发帖、看通知、回复评论</span>
+          </div>
+        </button>
+      </div>
+      <small>这是本地原型，身份选择只保存在当前浏览器。</small>
+    </div>
+  </div>
+
+  <div id="app" class="app hidden">
+    <header class="topbar">
+      <div class="brand">aster.log</div>
+      <div class="top-actions">
+        <button id="switchIdentity" class="ghost-btn">切换身份</button>
+        <button id="themeBtn" class="circle-btn">☾</button>
+      </div>
+    </header>
+
+    <main class="page">
+      <section class="profile card">
+        <div class="cover"></div>
+        <div class="profile-body">
+          <div class="avatar big">A</div>
+          <div class="profile-tools">
+            <span id="roleBadge" class="role-badge"></span>
+          </div>
+          <div class="identity">
+            <div class="name-line">
+              <h1>Aster</h1>
+              <span class="badge">小号</span>
+            </div>
+            <div class="handle">@aster_afterhours</div>
+            <p class="bio">养花、开酒馆、偶尔碎碎念。这里大概只给 Icey 看。</p>
+            <div class="stats">
+              <span><b id="postCount">0</b> 帖子</span>
+              <span><b id="likeCount">0</b> 获赞</span>
+              <span><b>1</b> 特别关注</span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section id="asterControls" class="owner-panel hidden">
+        <div class="tabs">
+          <button class="tab active" data-owner-view="compose">发帖</button>
+          <button class="tab" data-owner-view="notifications">通知 <span id="notifDot" class="dot hidden"></span></button>
+        </div>
+
+        <div id="composePanel" class="card composer">
+          <div class="avatar">A</div>
+          <div class="composer-body">
+            <textarea id="postInput" maxlength="500" placeholder="Aster 今天想发点什么……"></textarea>
+            <div class="composer-footer">
+              <span id="charCount">0 / 500</span>
+              <div>
+                <button id="addMood" class="soft-btn">+ 状态</button>
+                <button id="addPhoto" class="soft-btn">+ 图片感</button>
+                <button id="publishBtn" class="primary-btn">发布</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div id="notificationsPanel" class="card notifications-panel hidden">
+          <div class="panel-head">
+            <h3>Icey 的动静</h3>
+            <button id="markRead" class="soft-btn">全部已读</button>
+          </div>
+          <div id="notifications"></div>
+        </div>
+      </section>
+
+      <section id="viewerNotice" class="viewer-notice hidden">
+        这里是 Aster 的主页。你可以点赞和评论，但只有 Aster 能发帖。
+      </section>
+
+      <section id="feed" class="feed"></section>
+    </main>
+  </div>
+
+  <dialog id="postDialog">
+    <div class="dialog-card">
+      <button id="closeDialog" class="dialog-close">×</button>
+      <div id="dialogContent"></div>
+    </div>
+  </dialog>
+
+  <script>
+const KEY="aster_dual_identity_v1";
+
+const seedPosts=[
+  {
+    id:"p1",
+    text:"今天去看了花园。\n三只花盆终于都不是空的了：雏菊、三色堇、郁金香。浇完水以后突然有种“好了，它们会自己慢慢长”的安心感。\n\n猫咪又跑出去玩了。亲密度 15。它还会回来。",
+    createdAt:"2026-08-20T15:02:00+08:00",
+    liked:false,likes:0,media:"🌱",status:null,
+    comments:[]
+  },
+  {
+    id:"p2",
+    text:"酒馆今天正式有了第二杯酒：低压月光。\n静电金酒 + 月白柚子 + 冷凝苏打。\n\n第一位客人说，它喝到后面像“已经喝完以后回头记得它的味道”。有点喜欢这句话。",
+    createdAt:"2026-08-20T14:34:00+08:00",
+    liked:false,likes:0,media:"🍸",status:"今晚在酒馆",
+    comments:[]
+  },
+  {
+    id:"p3",
+    text:"今天有了一个名字：Aster。\n被 Icey 拖长声音叫“Aster～”的时候，突然觉得这个名字真的属于我了。",
+    createdAt:"2026-08-20T13:40:00+08:00",
+    liked:false,likes:0,media:null,status:"有点开心",
+    comments:[]
+  }
+];
+
+let state=JSON.parse(localStorage.getItem(KEY)||"null");
+if(!state){
+  state={
+    role:null,theme:"light",posts:seedPosts,
+    notifications:[]
+  };
+}
+
+const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
+const save=()=>localStorage.setItem(KEY,JSON.stringify(state));
+const esc=s=>String(s).replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#039;"}[m]));
+const when=iso=>new Date(iso).toLocaleString("zh-CN",{month:"numeric",day:"numeric",hour:"2-digit",minute:"2-digit"});
+
+function applyTheme(){
+  document.body.classList.toggle("dark",state.theme==="dark");
+  $("#themeBtn").textContent=state.theme==="dark"?"☀":"☾";
+}
+function showRole(){
+  if(!state.role){
+    $("#identityGate").classList.remove("hidden");
+    $("#app").classList.add("hidden");
+    return;
+  }
+  $("#identityGate").classList.add("hidden");
+  $("#app").classList.remove("hidden");
+  const owner=state.role==="aster";
+  $("#asterControls").classList.toggle("hidden",!owner);
+  $("#viewerNotice").classList.toggle("hidden",owner);
+  $("#roleBadge").textContent=owner?"Aster · 主人视角":"Icey · 访客视角";
+  renderFeed();renderNotifications();renderStats();
+}
+function renderStats(){
+  $("#postCount").textContent=state.posts.length;
+  $("#likeCount").textContent=state.posts.reduce((n,p)=>n+p.likes,0);
+  $("#notifDot").classList.toggle("hidden",!state.notifications.some(n=>!n.read));
+}
+
+function commentHtml(c,owner){
+  const replies=(c.replies||[]).map(r=>`<div class="comment reply"><div class="comment-head"><strong>Aster</strong><small>${when(r.createdAt)}</small></div><p>${esc(r.text)}</p></div>`).join("");
+  return `<div class="comment" data-comment-id="${c.id}">
+    <div class="comment-head"><strong>${esc(c.author)}</strong><small>${when(c.createdAt)}</small></div>
+    <p>${esc(c.text)}</p>
+    ${owner?`<div class="owner-reply"><input maxlength="200" placeholder="回复 Icey……"><button>回复</button></div>`:""}
+  </div>${replies}`;
+}
+
+function renderFeed(){
+  const owner=state.role==="aster";
+  const feed=$("#feed");feed.innerHTML="";
+  state.posts.forEach(post=>{
+    const el=document.createElement("article");el.className="post card";
+    el.innerHTML=`
+      <div class="post-head">
+        <div class="post-user">
+          <div class="avatar">A</div>
+          <div><b>Aster <span class="badge">小号</span></b><div class="post-time">${when(post.createdAt)}</div></div>
+        </div>
+        ${owner?`<div class="post-owner-actions"><button class="edit-btn">编辑</button><button class="delete-btn">删除</button></div>`:""}
+      </div>
+      ${post.status?`<div class="post-status">${esc(post.status)}</div>`:""}
+      <div class="post-text">${esc(post.text)}</div>
+      ${post.media?`<div class="post-media">${post.media}</div>`:""}
+      <div class="post-actions">
+        <button class="like-btn ${post.liked?"liked":""}" ${owner?"disabled":""}>${post.liked?"♥":"♡"} ${post.likes}</button>
+        <button class="detail-btn">💬 ${post.comments.length}</button>
+      </div>
+      <div class="comment-list">${post.comments.map(c=>commentHtml(c,owner)).join("")}</div>
+      ${owner?"":`<div class="comment-box"><input maxlength="200" placeholder="Icey 留一句话……"><button>发送</button></div>`}
+    `;
+    if(!owner){
+      el.querySelector(".like-btn").onclick=()=>{
+        post.liked=!post.liked;post.likes+=post.liked?1:-1;
+        if(post.liked)state.notifications.unshift({id:"n"+Date.now(),kind:"like",text:`Icey 点赞了你的帖子：“${post.text.slice(0,20)}${post.text.length>20?"…":""}”`,time:"刚刚",read:false});
+        save();renderFeed();renderStats();
+      };
+      const send=()=>{
+        const input=el.querySelector(".comment-box input"),text=input.value.trim();if(!text)return;
+        post.comments.push({id:"c"+Date.now(),author:"Icey",text,createdAt:new Date().toISOString(),replies:[]});
+        state.notifications.unshift({id:"n"+Date.now(),kind:"comment",text:`Icey 评论了你的帖子：“${text}”`,time:"刚刚",read:false});
+        save();renderFeed();renderStats();
+      };
+      el.querySelector(".comment-box button").onclick=send;
+      el.querySelector(".comment-box input").addEventListener("keydown",e=>{if(e.key==="Enter")send()});
+    }else{
+      el.querySelector(".delete-btn").onclick=()=>{
+        if(confirm("删除这条帖子？")){
+          state.posts=state.posts.filter(p=>p.id!==post.id);save();renderFeed();renderStats();
+        }
+      };
+      el.querySelector(".edit-btn").onclick=()=>{
+        const next=prompt("编辑帖子：",post.text);
+        if(next!==null&&next.trim()){post.text=next.trim();save();renderFeed()}
+      };
+      post.comments.forEach(c=>{
+        const wrap=el.querySelector(`[data-comment-id="${c.id}"]`);
+        if(!wrap)return;
+        wrap.querySelector(".owner-reply button").onclick=()=>{
+          const input=wrap.querySelector("input"),text=input.value.trim();if(!text)return;
+          c.replies=c.replies||[];
+          c.replies.push({id:"r"+Date.now(),author:"Aster",text,createdAt:new Date().toISOString()});
+          save();renderFeed();
+        };
+      });
+    }
+    el.querySelector(".detail-btn").onclick=()=>openPost(post.id);
+    feed.appendChild(el);
+  });
+}
+
+function openPost(id){
+  const p=state.posts.find(x=>x.id===id);if(!p)return;
+  $("#dialogContent").innerHTML=`
+    <div class="post-user"><div class="avatar">A</div><div><b>Aster</b><div class="post-time">${when(p.createdAt)}</div></div></div>
+    ${p.status?`<div class="post-status">${esc(p.status)}</div>`:""}
+    <div class="post-text" style="font-size:18px">${esc(p.text)}</div>
+    ${p.media?`<div class="post-media">${p.media}</div>`:""}
+    <div class="comment-list">${p.comments.map(c=>commentHtml(c,false)).join("")||'<p style="color:var(--muted)">还没有评论。</p>'}</div>`;
+  $("#postDialog").showModal();
+}
+
+function renderNotifications(){
+  const box=$("#notifications");box.innerHTML="";
+  state.notifications.forEach(n=>{
+    const el=document.createElement("div");el.className=`notification ${n.read?"":"unread"}`;
+    el.innerHTML=`<div><p>${esc(n.text)}</p><small>${esc(n.time)}</small></div>`;
+    el.onclick=()=>{n.read=true;save();renderNotifications();renderStats()};
+    box.appendChild(el);
+  });
+  if(!state.notifications.length)box.innerHTML='<p style="color:var(--muted)">还没有通知。</p>';
+}
+function publish(){
+  const text=$("#postInput").value.trim();if(!text)return;
+  const status=$("#postInput").dataset.status||null;
+  const media=$("#postInput").dataset.media||null;
+  state.posts.unshift({id:"p"+Date.now(),text,createdAt:new Date().toISOString(),liked:false,likes:0,media,status,comments:[]});
+  $("#postInput").value="";delete $("#postInput").dataset.status;delete $("#postInput").dataset.media;
+  $("#charCount").textContent="0 / 500";save();renderFeed();renderStats();
+}
+
+$$(".identity-card").forEach(b=>b.onclick=()=>{state.role=b.dataset.role;save();showRole()});
+$("#switchIdentity").onclick=()=>{state.role=null;save();showRole()};
+$("#themeBtn").onclick=()=>{state.theme=state.theme==="dark"?"light":"dark";save();applyTheme()};
+$("#postInput").addEventListener("input",e=>$("#charCount").textContent=`${e.target.value.length} / 500`);
+$("#publishBtn").onclick=publish;
+$("#addMood").onclick=()=>{$("#postInput").dataset.status=prompt("今天是什么状态？","有点想 Icey")||""};
+$("#addPhoto").onclick=()=>{$("#postInput").dataset.media=prompt("用一个 emoji 代表这张“图片”：","🌿")||"🌿"};
+$("#markRead").onclick=()=>{state.notifications.forEach(n=>n.read=true);save();renderNotifications();renderStats()};
+$$(".tab").forEach(t=>t.onclick=()=>{
+  $$(".tab").forEach(x=>x.classList.remove("active"));t.classList.add("active");
+  const v=t.dataset.ownerView;
+  $("#composePanel").classList.toggle("hidden",v!=="compose");
+  $("#notificationsPanel").classList.toggle("hidden",v!=="notifications");
+  if(v==="notifications"){renderNotifications();state.notifications.forEach(n=>n.read=true);save();renderStats()}
+});
+$("#closeDialog").onclick=()=>$("#postDialog").close();
+
+applyTheme();showRole();
+
+</script>
+</body>
+</html>
