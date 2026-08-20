@@ -144,7 +144,7 @@ dialog{border:0;background:transparent;padding:0;max-width:min(620px,calc(100vw 
       </section>
 
       <section id="viewerNotice" class="viewer-notice hidden">
-        数据库读取测试版：主页帖子已改为从 Supabase 读取。点赞、评论、发帖目前仍是本地试玩，下一步再接数据库。
+        已经连接 Supabase：帖子和评论现在都是真实数据。点赞和 Aster 发帖下一步再接。
       </section>
 
       <section id="dbStatus" class="viewer-notice">正在连接 Supabase…</section>
@@ -160,7 +160,7 @@ dialog{border:0;background:transparent;padding:0;max-width:min(620px,calc(100vw 
   </dialog>
 
   <script>
-const KEY="aster_supabase_test_v1";
+const KEY="aster_supabase_comments_v1";
 const SUPABASE_REST="https://qiimhmvaoqxhpxkswznr.supabase.co/rest/v1";
 const SUPABASE_KEY="sb_publishable_chqfPBZ4BA7UNjgxeNcKPw_Q7B8PkaN";
 
@@ -199,15 +199,25 @@ if(!state){
 
 async function loadRealPosts(){
   try{
-    const response = await fetch(
+    const postResponse = await fetch(
       `${SUPABASE_REST}/posts?select=id,created_at,content,author&order=created_at.desc`,
       { headers: { apikey: SUPABASE_KEY } }
     );
-    if(!response.ok){
-      throw new Error(`${response.status}: ${await response.text()}`);
+    if(!postResponse.ok){
+      throw new Error(`posts ${postResponse.status}: ${await postResponse.text()}`);
     }
-    const rows = await response.json();
-    state.posts = rows.map(row => ({
+    const postRows = await postResponse.json();
+
+    const commentResponse = await fetch(
+      `${SUPABASE_REST}/comments?select=id,post_id,author,content,created_at&order=created_at.asc`,
+      { headers: { apikey: SUPABASE_KEY } }
+    );
+    if(!commentResponse.ok){
+      throw new Error(`comments ${commentResponse.status}: ${await commentResponse.text()}`);
+    }
+    const commentRows = await commentResponse.json();
+
+    state.posts = postRows.map(row => ({
       id: String(row.id),
       text: row.content || "",
       createdAt: row.created_at,
@@ -215,15 +225,44 @@ async function loadRealPosts(){
       likes: 0,
       media: null,
       status: null,
-      comments: []
+      comments: commentRows
+        .filter(c => String(c.post_id) === String(row.id))
+        .map(c => ({
+          id: String(c.id),
+          author: c.author || "Icey",
+          text: c.content || "",
+          createdAt: c.created_at,
+          replies: []
+        }))
     }));
-    state.dbMessage = `✓ 已连接 Supabase · ${rows.length} 条真实帖子`;
+    state.dbMessage = `✓ 已连接 Supabase · ${postRows.length} 条帖子 · ${commentRows.length} 条评论`;
   }catch(err){
     state.dbMessage = `连接 Supabase 失败：${err.message}`;
   }
   save();
   showRole();
 }
+
+async function addRealComment(postId, text){
+  const response = await fetch(`${SUPABASE_REST}/comments`,{
+    method:"POST",
+    headers:{
+      apikey:SUPABASE_KEY,
+      "Content-Type":"application/json",
+      "Prefer":"return=representation"
+    },
+    body:JSON.stringify({
+      post_id:Number(postId),
+      author:"Icey",
+      content:text
+    })
+  });
+  if(!response.ok){
+    throw new Error(`${response.status}: ${await response.text()}`);
+  }
+  await loadRealPosts();
+}
+
 
 const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
 const save=()=>localStorage.setItem(KEY,JSON.stringify(state));
@@ -293,11 +332,16 @@ function renderFeed(){
         if(post.liked)state.notifications.unshift({id:"n"+Date.now(),kind:"like",text:`Icey 点赞了你的帖子：“${post.text.slice(0,20)}${post.text.length>20?"…":""}”`,time:"刚刚",read:false});
         save();renderFeed();renderStats();
       };
-      const send=()=>{
+      const send=async()=>{
         const input=el.querySelector(".comment-box input"),text=input.value.trim();if(!text)return;
-        post.comments.push({id:"c"+Date.now(),author:"Icey",text,createdAt:new Date().toISOString(),replies:[]});
-        state.notifications.unshift({id:"n"+Date.now(),kind:"comment",text:`Icey 评论了你的帖子：“${text}”`,time:"刚刚",read:false});
-        save();renderFeed();renderStats();
+        const button=el.querySelector(".comment-box button");
+        button.disabled=true; button.textContent="发送中";
+        try{
+          await addRealComment(post.id,text);
+        }catch(err){
+          alert("评论发送失败："+err.message);
+          button.disabled=false; button.textContent="发送";
+        }
       };
       el.querySelector(".comment-box button").onclick=send;
       el.querySelector(".comment-box input").addEventListener("keydown",e=>{if(e.key==="Enter")send()});
