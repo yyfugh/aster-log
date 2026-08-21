@@ -364,6 +364,268 @@ dialog{border:0;background:transparent;padding:0;max-width:min(620px,calc(100vw 
       border-left-color:#e2a2ba !important;
     }
 
+
+    /* === Aster Log polished pink night mode + cream rounded wordmark === */
+
+    /* Catch every visible aster.log wordmark on home / gate / dialogs */
+    .brand,
+    .gate-logo,
+    .site-title,
+    .wordmark,
+    header h1,
+    header .title,
+    .topbar strong:first-child,
+    .topbar .brand,
+    .topbar .site-title{
+      font-family:"Avenir Next Rounded","Arial Rounded MT Bold","SF Pro Rounded",-apple-system,BlinkMacSystemFont,sans-serif !important;
+      font-weight:800 !important;
+      letter-spacing:.035em !important;
+      color:#c85f87 !important;
+      text-transform:none !important;
+    }
+
+    /* Day mode stays soft pink */
+    body:not(.dark){
+      background:
+        radial-gradient(circle at 18% 10%,rgba(255,211,226,.58),transparent 28rem),
+        radial-gradient(circle at 85% 18%,rgba(255,235,242,.88),transparent 30rem),
+        #fff5f8 !important;
+    }
+
+    /* Dark mode palette */
+    body.dark{
+      --bg:#161416 !important;
+      --card:#201d20 !important;
+      --text:#fff7fb !important;
+      --muted:#c9b5bf !important;
+      --line:#41383e !important;
+      --soft:#2a2227 !important;
+      --sage:#df7da3 !important;
+      --rose:#ef6f9f !important;
+      --shadow:0 16px 42px rgba(0,0,0,.28) !important;
+
+      background:
+        radial-gradient(circle at 18% 7%,rgba(214,82,134,.12),transparent 24rem),
+        radial-gradient(circle at 88% 18%,rgba(236,116,161,.08),transparent 30rem),
+        #161416 !important;
+      color:#fff7fb !important;
+    }
+
+    body.dark .topbar{
+      background:rgba(24,21,24,.92) !important;
+      border-bottom:1px solid #3a3136 !important;
+      box-shadow:0 10px 28px rgba(0,0,0,.22) !important;
+      backdrop-filter:blur(18px);
+    }
+
+    body.dark .brand,
+    body.dark .gate-logo,
+    body.dark .site-title,
+    body.dark .wordmark,
+    body.dark header h1,
+    body.dark header .title,
+    body.dark .topbar strong:first-child{
+      color:#f08eb2 !important;
+      text-shadow:0 0 18px rgba(240,142,178,.10) !important;
+    }
+
+    body.dark .post,
+    body.dark .card,
+    body.dark .composer,
+    body.dark .profile-card,
+    body.dark .dialog-card{
+      background:#201d20 !important;
+      border-color:#40373d !important;
+      box-shadow:0 14px 34px rgba(0,0,0,.25) !important;
+      color:#fff7fb !important;
+    }
+
+    /* Main post copy */
+    body.dark .post,
+    body.dark .post *{
+      color:inherit;
+    }
+    body.dark .post .muted,
+    body.dark .post time,
+    body.dark .post .timestamp,
+    body.dark .meta{
+      color:#c9b5bf !important;
+    }
+
+    /* Comments: readable in dark mode */
+    body.dark .comment,
+    body.dark .comment-item,
+    body.dark .comment-bubble,
+    body.dark .comment-card{
+      background:#292328 !important;
+      border:1px solid #514249 !important;
+      color:#fff8fb !important;
+      box-shadow:none !important;
+    }
+
+    body.dark .comment *,
+    body.dark .comment-item *,
+    body.dark .comment-bubble *,
+    body.dark .comment-card *{
+      color:#fff8fb !important;
+    }
+
+    body.dark .comment time,
+    body.dark .comment .timestamp,
+    body.dark .comment-item time,
+    body.dark .comment-item .timestamp,
+    body.dark .comment-bubble time,
+    body.dark .comment-card time{
+      color:#d2bdc7 !important;
+    }
+
+    /* Aster reply: berry-pink glass card with high contrast */
+    body.dark .reply,
+    body.dark .reply-item,
+    body.dark .reply-bubble,
+    body.dark .aster-reply,
+    body.dark .owner-reply{
+      background:linear-gradient(135deg,rgba(120,58,82,.92),rgba(90,47,66,.96)) !important;
+      border:1px solid #8e5a6e !important;
+      border-left:5px solid #df7da3 !important;
+      color:#fff8fb !important;
+      box-shadow:0 10px 24px rgba(0,0,0,.16) !important;
+    }
+
+    body.dark .reply *,
+    body.dark .reply-item *,
+    body.dark .reply-bubble *,
+    body.dark .aster-reply *,
+    body.dark .owner-reply *{
+      color:#fff8fb !important;
+    }
+
+    body.dark .reply time,
+    body.dark .reply .timestamp,
+    body.dark .reply-item time,
+    body.dark .reply-item .timestamp,
+    body.dark .reply-bubble time,
+    body.dark .aster-reply time{
+      color:#f3d9e4 !important;
+    }
+
+    /* Comment input */
+    body.dark .comment-box input,
+    body.dark .comment-box textarea,
+    body.dark input[type="text"],
+    body.dark textarea{
+      background:#1a181a !important;
+      border:1px solid #473b42 !important;
+      color:#fff8fb !important;
+      caret-color:#ef6f9f !important;
+    }
+    body.dark input::placeholder,
+    body.dark textarea::placeholder{
+      color:#b9a4ae !important;
+      opacity:1 !important;
+    }
+
+    /* Pink buttons in both modes */
+    .comment-box button,
+    .owner-reply button,
+    .primary-btn,
+    #publishBtn,
+    #loginBtn,
+    .send-btn,
+    .comment-send,
+    .reply-send{
+      background:linear-gradient(135deg,#d96f96,#e58cab) !important;
+      border:0 !important;
+      color:#fff !important;
+      box-shadow:0 8px 18px rgba(217,111,150,.20) !important;
+    }
+    body.dark .comment-box button,
+    body.dark .owner-reply button,
+    body.dark .primary-btn,
+    body.dark #publishBtn,
+    body.dark #loginBtn{
+      background:linear-gradient(135deg,#e16f9b,#f087b0) !important;
+      color:#fff !important;
+      box-shadow:0 9px 20px rgba(219,85,139,.18) !important;
+    }
+
+    /* Identity switch button */
+    #switchIdentity{
+      background:#fff0f5 !important;
+      color:#b7607f !important;
+      border:1px solid #efd1dc !important;
+    }
+    body.dark #switchIdentity{
+      background:#2a2227 !important;
+      color:#f39abb !important;
+      border-color:#59424c !important;
+    }
+
+    /* Theme toggle */
+    .theme-toggle,
+    .mode-toggle{
+      background:#fffafd !important;
+      border-color:#ead9df !important;
+      color:#403238 !important;
+    }
+    body.dark .theme-toggle,
+    body.dark .mode-toggle{
+      background:#262126 !important;
+      border-color:#514249 !important;
+      color:#ffdbe8 !important;
+    }
+
+    /* Badges */
+    body.dark .role-badge,
+    body.dark .badge,
+    body.dark .identity-badge,
+    body.dark .chip,
+    body.dark .tag{
+      background:#352832 !important;
+      color:#f2a3bf !important;
+      border-color:#634453 !important;
+    }
+
+    body.dark hr,
+    body.dark .divider{
+      border-color:#3d3439 !important;
+      background:#3d3439 !important;
+    }
+
+    body.dark .like-btn,
+    body.dark .like-count,
+    body.dark .liked{
+      color:#f078a5 !important;
+    }
+
+    body.dark .post-image{
+      border-color:#463940 !important;
+      background:#191719 !important;
+    }
+
+    /* Identity screen in dark mode */
+    body.dark .gate{
+      background:
+        radial-gradient(circle at 18% 12%,rgba(218,95,142,.14),transparent 30%),
+        #171417 !important;
+    }
+    body.dark .gate-card,
+    body.dark .identity-card{
+      background:#211d20 !important;
+      border-color:#44373e !important;
+      color:#fff8fb !important;
+    }
+    body.dark .identity-card span,
+    body.dark .gate-card>p,
+    body.dark .gate-card small{
+      color:#cbb6c0 !important;
+    }
+
+    ::selection{
+      background:#e887aa !important;
+      color:#fff !important;
+    }
+
 </style>
 </head>
 <body>
