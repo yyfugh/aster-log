@@ -104,7 +104,111 @@ dialog{border:0;background:transparent;padding:0;max-width:min(620px,calc(100vw 
     .notice-dot{background:#e34e7e;box-shadow:0 0 0 3px #ffe2ec}
     ::selection{background:#f6bfd2;color:#593846}
 
-  </style>
+  
+    /* === Aster Log full pink polish === */
+    :root{
+      --aster-rose:#d96f96;
+      --aster-rose-deep:#bd5c80;
+      --aster-blush:#fff0f5;
+      --aster-blush-2:#fbe3ec;
+      --aster-blush-3:#f7d4e1;
+      --aster-border:#efd1dc;
+      --aster-text:#3b3036;
+    }
+
+    /* Brand wordmark */
+    .brand,
+    .logo,
+    .topbar .brand,
+    .topbar .logo{
+      color:var(--aster-rose-deep) !important;
+      font-family:"Snell Roundhand","Brush Script MT","Segoe Script","Apple Chancery",cursive !important;
+      font-weight:700 !important;
+      letter-spacing:.04em !important;
+      text-transform:none !important;
+    }
+
+    /* Comment / reply surfaces */
+    .comment,
+    .comment-item,
+    .comment-bubble,
+    .comment-card{
+      background:#fff1f6 !important;
+      border-color:var(--aster-border) !important;
+    }
+
+    .reply,
+    .reply-item,
+    .reply-bubble,
+    .aster-reply{
+      background:#fbe3ec !important;
+      border-color:#e9b9ca !important;
+      box-shadow:inset 4px 0 0 #e5a4bb !important;
+    }
+
+    /* inputs */
+    .comment-input,
+    .reply-input,
+    input[type="text"],
+    textarea{
+      background:#fffafd !important;
+      border-color:#efd5df !important;
+      color:var(--aster-text) !important;
+    }
+
+    /* all major action buttons */
+    button.primary,
+    .primary-btn,
+    .publish-btn,
+    .send-btn,
+    .comment-send,
+    .reply-send,
+    form button[type="submit"]{
+      background:linear-gradient(135deg,#d96f96,#e58cab) !important;
+      border-color:transparent !important;
+      color:white !important;
+      box-shadow:0 8px 18px rgba(217,111,150,.20) !important;
+    }
+
+    button.primary:hover,
+    .primary-btn:hover,
+    .publish-btn:hover,
+    .send-btn:hover,
+    .comment-send:hover,
+    .reply-send:hover,
+    form button[type="submit"]:hover{
+      background:linear-gradient(135deg,#ce648d,#df7fa3) !important;
+    }
+
+    /* Any remaining sage/green-looking badges and chips */
+    .badge,
+    .role-badge,
+    .identity-badge,
+    .chip,
+    .tag,
+    .status,
+    .soft-btn{
+      background:#fff0f5 !important;
+      color:#a45e78 !important;
+      border-color:#efd1dc !important;
+    }
+
+    /* keep dark-mode button neutral */
+    .theme-toggle,
+    .mode-toggle{
+      background:#fffafd !important;
+      color:#403238 !important;
+      border-color:#ead9df !important;
+    }
+
+    /* Likes stay pink */
+    .like-btn,
+    .like-count,
+    .liked{
+      color:#dc5682 !important;
+    }
+
+</style>
 </head>
 <body>
   <div id="identityGate" class="gate">
