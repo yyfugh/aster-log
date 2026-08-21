@@ -41,6 +41,9 @@ radial-gradient(circle at 80% 80%,rgba(195,171,145,.16),transparent 30%),var(--b
 
 .feed{display:grid;gap:12px;margin-top:14px}.post{padding:17px}.post-head{display:flex;justify-content:space-between;align-items:center}.post-user{display:flex;gap:10px;align-items:center}.post-user b{display:block}.post-time{font-size:12px;color:var(--muted);margin-top:2px}.post-owner-actions{display:flex;gap:5px}.post-owner-actions button{border:0;background:transparent;color:var(--muted);padding:6px 7px;border-radius:9px}.post-owner-actions button:hover{background:var(--soft)}
 .post-text{white-space:pre-wrap;line-height:1.68;margin:15px 2px}.post-media{margin:12px 0;border-radius:18px;min-height:180px;display:grid;place-items:center;font-size:64px;background:linear-gradient(135deg,var(--soft),#ded1bd)}
+.post-image{display:block;width:100%;max-height:680px;object-fit:cover;margin:12px 0;border-radius:18px;border:1px solid var(--line);background:var(--soft)}
+.image-preview-wrap{position:relative;margin:10px 0 2px;max-width:280px}.image-preview-wrap img{display:block;width:100%;max-height:260px;object-fit:cover;border-radius:16px;border:1px solid var(--line)}
+.remove-image{position:absolute;right:7px;top:7px;border:0;border-radius:999px;width:30px;height:30px;background:rgba(25,25,25,.72);color:white;font-size:17px;font-weight:800}
 .post-status{display:inline-block;margin:4px 0 10px;padding:6px 10px;border-radius:999px;background:var(--soft);color:var(--sage);font-size:12px;font-weight:800}
 .post-actions{display:flex;gap:7px;border-top:1px solid var(--line);padding-top:9px}.post-actions button{border:0;background:transparent;color:var(--muted);padding:8px 10px;border-radius:10px}.post-actions button:hover{background:var(--soft)}.post-actions .liked{color:var(--rose)}
 .comment-list{margin-top:8px}.comment{padding:9px 11px;background:var(--soft);border-radius:13px;margin-top:7px}.comment-head{display:flex;justify-content:space-between;gap:10px}.comment strong{font-size:13px}.comment small{color:var(--muted)}.comment p{margin:4px 0 0;line-height:1.48}.reply{margin-left:18px;border-left:3px solid color-mix(in srgb,var(--sage) 35%,transparent)}
@@ -123,11 +126,16 @@ dialog{border:0;background:transparent;padding:0;max-width:min(620px,calc(100vw 
           <div class="avatar">A</div>
           <div class="composer-body">
             <textarea id="postInput" maxlength="500" placeholder="Aster 今天想发点什么……"></textarea>
+            <input id="photoInput" type="file" accept="image/*" hidden>
+            <div id="imagePreviewWrap" class="image-preview-wrap hidden">
+              <img id="imagePreview" alt="待发布图片预览">
+              <button id="removeImage" class="remove-image" type="button">×</button>
+            </div>
             <div class="composer-footer">
               <span id="charCount">0 / 500</span>
               <div>
                 <button id="addMood" class="soft-btn">+ 状态</button>
-                <button id="addPhoto" class="soft-btn">+ 图片感</button>
+                <button id="addPhoto" class="soft-btn">+ 图片</button>
                 <button id="publishBtn" class="primary-btn">发布</button>
               </div>
             </div>
@@ -144,7 +152,7 @@ dialog{border:0;background:transparent;padding:0;max-width:min(620px,calc(100vw 
       </section>
 
       <section id="viewerNotice" class="viewer-notice hidden">
-        已经连接 Supabase：帖子、评论、点赞、Aster 回复都已连接 Supabase。回复修正版已启用。
+        已经连接 Supabase：帖子、评论、点赞、Aster 回复和图片帖都已连接。
       </section>
 
       <section id="dbStatus" class="viewer-notice">正在连接 Supabase…</section>
@@ -180,9 +188,12 @@ dialog{border:0;background:transparent;padding:0;max-width:min(620px,calc(100vw 
   </dialog>
 
   <script>
-const KEY="aster_replies_fixed_v2";
+const KEY="aster_photo_posts_v1";
 const SUPABASE_REST="https://qiimhmvaoqxhpxkswznr.supabase.co/rest/v1";
 const SUPABASE_KEY="sb_publishable_chqfPBZ4BA7UNjgxeNcKPw_Q7B8PkaN";
+const SUPABASE_STORAGE=SUPABASE_REST.replace("/rest/v1","/storage/v1");
+const SUPABASE_PROJECT=SUPABASE_REST.replace("/rest/v1","");
+const IMAGE_BUCKET="post-images";
 
 const seedPosts=[
   {
@@ -220,7 +231,7 @@ if(!state){
 async function loadRealPosts(){
   try{
     const postResponse = await fetch(
-      `${SUPABASE_REST}/posts?select=id,created_at,content,author&order=created_at.desc`,
+      `${SUPABASE_REST}/posts?select=id,created_at,content,author,image_url&order=created_at.desc`,
       { headers: { apikey: SUPABASE_KEY } }
     );
     if(!postResponse.ok){
@@ -257,6 +268,7 @@ async function loadRealPosts(){
         likeId: iceyLike ? String(iceyLike.id) : null,
         likes: postLikes.length,
         media: null,
+        imageUrl: row.image_url || null,
         status: null,
         comments: commentRows
           .filter(c => String(c.post_id) === String(row.id))
@@ -357,14 +369,33 @@ async function loginAster(email,password){
 function logoutAster(){
   state.accessToken=null; state.refreshToken=null; state.authUserId=null; state.role=null; save(); showRole();
 }
-async function createRealPost(text){
+async function createRealPost(text,imageUrl=null){
   const response=await fetch(`${SUPABASE_REST}/posts`,{
     method:"POST",
     headers:authHeaders({"Content-Type":"application/json","Prefer":"return=representation"}),
-    body:JSON.stringify({content:text,author:"Aster"})
+    body:JSON.stringify({content:text,author:"Aster",image_url:imageUrl})
   });
   if(!response.ok) throw new Error(`${response.status}: ${await response.text()}`);
   await loadRealPosts();
+}
+
+async function uploadPostImage(file){
+  if(!file) return null;
+  if(!file.type.startsWith("image/")) throw new Error("请选择图片文件。");
+  if(file.size > 12 * 1024 * 1024) throw new Error("图片太大啦，请选 12MB 以内的图片。");
+
+  const safeExt=(file.name.split(".").pop() || "jpg").replace(/[^a-zA-Z0-9]/g,"").toLowerCase() || "jpg";
+  const path=`posts/${Date.now()}-${Math.random().toString(36).slice(2,9)}.${safeExt}`;
+  const response=await fetch(`${SUPABASE_STORAGE}/object/${IMAGE_BUCKET}/${path}`,{
+    method:"POST",
+    headers:authHeaders({
+      "Content-Type":file.type || "application/octet-stream",
+      "x-upsert":"false"
+    }),
+    body:file
+  });
+  if(!response.ok) throw new Error(`图片上传失败 ${response.status}: ${await response.text()}`);
+  return `${SUPABASE_PROJECT}/storage/v1/object/public/${IMAGE_BUCKET}/${path}`;
 }
 async function updateRealPost(postId,text){
   const response=await fetch(`${SUPABASE_REST}/posts?id=eq.${encodeURIComponent(postId)}`,{
@@ -395,6 +426,8 @@ async function replyRealComment(commentId,text){
   if(!rows.length) throw new Error("数据库没有更新到任何评论，请检查 Aster 的 UPDATE policy。");
   await loadRealPosts();
 }
+
+let selectedPostImage=null;
 
 const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
 const save=()=>localStorage.setItem(KEY,JSON.stringify(state));
@@ -456,7 +489,7 @@ function renderFeed(){
       </div>
       ${post.status?`<div class="post-status">${esc(post.status)}</div>`:""}
       <div class="post-text">${esc(post.text)}</div>
-      ${post.media?`<div class="post-media">${post.media}</div>`:""}
+      ${post.imageUrl?`<img class="post-image" src="${esc(post.imageUrl)}" alt="Aster 帖子图片" loading="lazy">`:""}
       <div class="post-actions">
         <button class="like-btn ${post.liked?"liked":""}" ${owner?"disabled":""}>${post.liked?"♥":"♡"} ${post.likes}</button>
         <button class="detail-btn">💬 ${post.comments.length}</button>
@@ -527,7 +560,7 @@ function openPost(id){
     <div class="post-user"><div class="avatar">A</div><div><b>Aster</b><div class="post-time">${when(p.createdAt)}</div></div></div>
     ${p.status?`<div class="post-status">${esc(p.status)}</div>`:""}
     <div class="post-text" style="font-size:18px">${esc(p.text)}</div>
-    ${p.media?`<div class="post-media">${p.media}</div>`:""}
+    ${p.imageUrl?`<img class="post-image" src="${esc(p.imageUrl)}" alt="Aster 帖子图片">`:""}
     <div class="comment-list">${p.comments.map(c=>commentHtml(c,false)).join("")||'<p style="color:var(--muted)">还没有评论。</p>'}</div>`;
   $("#postDialog").showModal();
 }
@@ -543,12 +576,25 @@ function renderNotifications(){
   if(!state.notifications.length)box.innerHTML='<p style="color:var(--muted)">还没有通知。</p>';
 }
 async function publish(){
-  const text=$("#postInput").value.trim(); if(!text)return;
-  const button=$("#publishBtn"); button.disabled=true; button.textContent="发布中";
+  const text=$("#postInput").value.trim();
+  if(!text && !selectedPostImage){
+    alert("写点东西或者选一张图片再发吧～");
+    return;
+  }
+  const button=$("#publishBtn"); button.disabled=true; button.textContent=selectedPostImage?"上传中":"发布中";
   try{
-    await createRealPost(text);
+    let imageUrl=null;
+    if(selectedPostImage){
+      imageUrl=await uploadPostImage(selectedPostImage);
+      button.textContent="发布中";
+    }
+    await createRealPost(text,imageUrl);
     $("#postInput").value="";
     $("#charCount").textContent="0 / 500";
+    selectedPostImage=null;
+    $("#photoInput").value="";
+    $("#imagePreview").removeAttribute("src");
+    $("#imagePreviewWrap").classList.add("hidden");
   }catch(err){
     alert("发帖失败："+err.message);
   }finally{
@@ -565,7 +611,25 @@ $("#themeBtn").onclick=()=>{state.theme=state.theme==="dark"?"light":"dark";save
 $("#postInput").addEventListener("input",e=>$("#charCount").textContent=`${e.target.value.length} / 500`);
 $("#publishBtn").onclick=publish;
 $("#addMood").onclick=()=>{$("#postInput").dataset.status=prompt("今天是什么状态？","有点想 Icey")||""};
-$("#addPhoto").onclick=()=>{$("#postInput").dataset.media=prompt("用一个 emoji 代表这张“图片”：","🌿")||"🌿"};
+$("#addPhoto").onclick=()=>$("#photoInput").click();
+$("#photoInput").onchange=e=>{
+  const file=e.target.files?.[0] || null;
+  if(!file) return;
+  if(!file.type.startsWith("image/")){
+    alert("请选择图片文件。");
+    e.target.value="";
+    return;
+  }
+  selectedPostImage=file;
+  $("#imagePreview").src=URL.createObjectURL(file);
+  $("#imagePreviewWrap").classList.remove("hidden");
+};
+$("#removeImage").onclick=()=>{
+  selectedPostImage=null;
+  $("#photoInput").value="";
+  $("#imagePreview").removeAttribute("src");
+  $("#imagePreviewWrap").classList.add("hidden");
+};
 $("#markRead").onclick=()=>{state.notifications.forEach(n=>n.read=true);save();renderNotifications();renderStats()};
 $$(".tab").forEach(t=>t.onclick=()=>{
   $$(".tab").forEach(x=>x.classList.remove("active"));t.classList.add("active");
