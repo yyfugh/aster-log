@@ -55,7 +55,56 @@ radial-gradient(circle at 80% 80%,rgba(195,171,145,.16),transparent 30%),var(--b
 dialog{border:0;background:transparent;padding:0;max-width:min(620px,calc(100vw - 24px));width:100%}dialog::backdrop{background:rgba(0,0,0,.43);backdrop-filter:blur(5px)}.dialog-card{position:relative;background:var(--card);color:var(--text);border-radius:24px;padding:23px;border:1px solid var(--line)}.dialog-close{position:absolute;right:14px;top:13px;border:0;background:var(--soft);color:var(--text);width:34px;height:34px;border-radius:50%;font-size:20px}
 @media(max-width:520px){.gate-card{padding:24px}.cover{height:132px}.avatar.big{width:74px;height:74px;top:-37px}.profile-tools{height:44px}.composer-footer{align-items:flex-end}.composer-footer>div{flex-wrap:wrap;justify-content:flex-end}.soft-btn,.primary-btn{padding:7px 9px}.stats{gap:12px}.post-media{min-height:150px}}
 
-</style>
+
+    /* Soft Pink Aster Log theme */
+    body{
+      background:
+        radial-gradient(circle at 12% 8%, rgba(255,210,226,.55), transparent 24rem),
+        radial-gradient(circle at 88% 16%, rgba(255,231,239,.8), transparent 28rem),
+        var(--bg);
+    }
+    .topbar{
+      background:rgba(255,250,253,.90);
+      border-bottom-color:#f0d7e1;
+      box-shadow:0 8px 28px rgba(190,105,138,.08);
+    }
+    .brand-dot{
+      background:linear-gradient(135deg,#e68cab,#f5bfd1);
+      box-shadow:0 0 0 5px rgba(230,140,171,.12);
+    }
+    .card,.post,.composer,.profile-card,.dialog-card{
+      box-shadow:0 12px 36px rgba(181,102,133,.08);
+    }
+    .primary-btn,.publish-btn{
+      background:linear-gradient(135deg,#d97f9f,#e99ab6);
+      color:white;
+      border-color:transparent;
+      box-shadow:0 8px 18px rgba(217,127,159,.20);
+    }
+    .soft-btn,.chip,.tag{
+      background:#fff1f6;
+      border-color:#f0d0dc;
+      color:#9b5f76;
+    }
+    textarea:focus,input:focus{
+      border-color:#df91ae !important;
+      box-shadow:0 0 0 4px rgba(223,145,174,.13);
+      outline:none;
+    }
+    .avatar{
+      background:linear-gradient(145deg,#f5b7cc,#d982a3);
+      box-shadow:0 5px 14px rgba(205,111,146,.18);
+    }
+    .cover{
+      background:
+        radial-gradient(circle at 25% 30%, rgba(255,255,255,.62), transparent 18%),
+        linear-gradient(135deg,#f9cad9,#f3dce5 45%,#efd0db);
+    }
+    .like-btn.liked,.like-btn:hover{color:#d94f7b}
+    .notice-dot{background:#e34e7e;box-shadow:0 0 0 3px #ffe2ec}
+    ::selection{background:#f6bfd2;color:#593846}
+
+  </style>
 </head>
 <body>
   <div id="identityGate" class="gate">
